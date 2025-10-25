@@ -19,6 +19,7 @@ eu\Divish\tabSBS\nametag\NametagListeners.class
 eu\Divish\tabSBS\papi\PlaceholderValidator.class
 eu\Divish\tabSBS\tablist\TablistConfig$TieBreakerName.class
 eu\Divish\tabSBS\tablist\TablistConfig$Effects$PulseCfg.class
+eu\Divish\tabSBS\util\UpdateChecker.class
 eu\Divish\tabSBS\util\Console.class
 eu\Divish\tabSBS\tablist\TablistManager.class
 eu\Divish\tabSBS\scoreboard\TempBoardOverlay.class
@@ -34,6 +35,7 @@ eu\Divish\tabSBS\scoreboard\ScoreboardManager$ChatColorLike.class
 eu\Divish\tabSBS\tablist\TabSortingService.class
 eu\Divish\tabSBS\scoreboard\ScoreboardController.class
 eu\Divish\tabSBS\scoreboard\ScoreboardRuntime.class
+eu\Divish\tabSBS\TabSBS$1.class
 eu\Divish\tabSBS\tablist\TablistConfig$SortingMode.class
 eu\Divish\tabSBS\nametag\NametagService$1.class
 eu\Divish\tabSBS\TabSBS.class

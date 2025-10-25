@@ -96,3 +96,16 @@ commands:
 
 misc:
   internal_error: "&cEin unerwarteter Fehler ist aufgetreten. Siehe Konsole."
+update:
+  usage: "\u00a7eVerwendung: /wtmupdate <confirm|cancel|open>"
+  downloading: "\u00a7eNeueste Plugin-Version wird heruntergeladen..."
+  success: "\u00a7eDie neue Version wurde erfolgreich heruntergeladen. Sie wird nach einem Server-Neustart aktiviert."
+  failed: "\u00a7eAktualisierung konnte nicht heruntergeladen werden"
+  cancelled: "\u00a7eAktualisierung wurde abgebrochen."
+  no_permission: "\u00a7eDu hast keine Berechtigung, diese Aktion auszuführen."
+  no_update_available: "\u00a7eDerzeit ist kein Update verfügbar."
+  available: "Neue Version verfügbar: %version%"
+  confirm: "Aktualisieren"
+  wish_update: "&7Möchten Sie jetzt aktualisieren?"
+  cancel: "Abbrechen"
+  open: "Release öffnen"

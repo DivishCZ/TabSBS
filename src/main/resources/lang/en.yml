@@ -97,3 +97,16 @@ commands:
 
 misc:
   internal_error: "&cAn unexpected error occurred. Check the console."
+update:
+  usage: "\u00a7eUsage: /wtmupdate <confirm|cancel|open>"
+  downloading: "\u00a7eDownloading the latest plugin version..."
+  success: "\u00a7eThe new version was successfully downloaded. It will be applied after a server restart."
+  failed: "\u00a7eFailed to download the update"
+  cancelled: "\u00a7eUpdate was cancelled."
+  no_permission: "\u00a7eYou don't have permission to perform this action."
+  no_update_available: "\u00a7eNo update is currently available."
+  available: "New version available: %version%"
+  confirm: "Update"
+  cancel: "Cancel"
+  wish_update: "&7Would you like to update now?"
+  open: "Open release"

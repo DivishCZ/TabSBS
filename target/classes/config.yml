@@ -144,12 +144,6 @@ modules:
       reserved_for_future: false
 
 # ======================================================================
-# ================ DALŠÍ MODULY (ZATÍM PRÁZDNÉ / TODO) ================
-# ======================================================================
-
-# CZ: Rezervováno pro budoucí části (Tablist, Nametagy, Řazení v TABu atd.).
-# EN: Reserved for upcoming modules (Tablist, Nametags, TAB sorting, etc.).
-# ======================================================================
 # ============================== TABLIST ===============================
 # ======================================================================
   tablist:
@@ -321,5 +315,9 @@ modules:
 # EN: Auto-update will be added at the end of the project (disabled for now).
 # ----------------------------------------------------------------------
 updates:
-  enabled: false
+  enabled: true
   repo_api_url: "https://api.github.com/repos/DivishCZ/TabSBS/releases/latest"  # upravíme dle repa
+
+# ======================================================================
+# ================ DALŠÍ MODULY (ZATÍM PRÁZDNÉ / TODO) ================
+# ======================================================================

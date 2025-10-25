@@ -96,3 +96,16 @@ commands:
 
 misc:
   internal_error: "&cNastala neočekávaná chyba. Zkontroluj konzoli."
+update:
+  usage: "\u00a7ePoužití: /wtmupdate <confirm|cancel>"
+  downloading: "\u00a7eStahuji nejnovější verzi pluginu..."
+  success: "\u00a7eNová verze byla úspěšně stažena. Aktivuje se po restartu serveru."
+  no_update_available: "\u00a7eŽádná aktualizace není dostupná."
+  failed: "\u00a7eNepodařilo se stáhnout aktualizaci"
+  cancelled: "\u00a7eAktualizace byla zrušena."
+  no_permission: "\u00a7eNemáš oprávnění k provedení této akce."
+  available: "Nová verze je dostupná: %version%"
+  wish_update: "&7Přejete si provést aktualizaci?"
+  confirm: "Aktualizovat"
+  cancel: "Zrušit"
+  open: "Otevřít release"

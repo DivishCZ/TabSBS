@@ -1,0 +1,34 @@
+# === Lokální konfigy / tajemství (pokud máš) ===
+*.local.yml
+*.secret.yml
+*.env
+
+
+# === Archiv/produkty buildů ===
+*.jar
+*.war
+*.zip
+# Pokud chceš verzovat vydané JARy, používej složku releases a povol ji:
+!releases/
+releases/**.jar
+
+# === VSCode (pokud používáš) ===
+.vscode/
+
+# === Java ===
+*.log
+*.class
+*.hprof
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === IntelliJ IDEA ===
+.idea/
+*.iml
+out/
+
+# === Maven ===
+target/
+!.mvn/wrapper/maven-wrapper.jar

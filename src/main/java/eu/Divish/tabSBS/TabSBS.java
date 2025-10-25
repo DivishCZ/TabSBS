@@ -16,8 +16,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import net.kyori.adventure.text.Component;
+import eu.Divish.tabSBS.util.UpdateChecker; // NOVĚ: updater
+import net.kyori.adventure.text.event.ClickEvent; // NOVĚ: tlačítka
+import net.kyori.adventure.text.format.NamedTextColor; // NOVĚ
+import net.kyori.adventure.text.format.TextDecoration; // NOVĚ
+import org.bukkit.entity.Player; // NOVĚ
+import java.util.Set; // NOVĚ
+import java.util.UUID; // NOVĚ
+import java.util.concurrent.ConcurrentHashMap; // NOVĚ
 
 import java.util.Objects;
+
+// NOVĚ: pro deserializaci &/§ z lang
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 public final class TabSBS extends JavaPlugin {
 
@@ -42,6 +53,12 @@ public final class TabSBS extends JavaPlugin {
     // Nametag modul
     private eu.Divish.tabSBS.nametag.NametagConfig nametagCfg;
     private eu.Divish.tabSBS.nametag.NametagService nametagSvc;
+
+    // --- UPDATER: stav a session volby ---
+    private volatile boolean updateAvailable = false;
+    private volatile String latestVersion = "";
+    private final Set<UUID> declinedThisBoot = ConcurrentHashMap.newKeySet();
+
 
     @Override
     public void onEnable() {
@@ -150,6 +167,18 @@ public final class TabSBS extends JavaPlugin {
         );
         Objects.requireNonNull(getCommand("tabsbs")).setExecutor(cmd);
         Objects.requireNonNull(getCommand("tabsbs")).setTabCompleter(cmd);
+
+        // === UPDATE CHECK ===
+        new UpdateChecker(this).checkForUpdate();
+
+// Po joinu ukaž výzvu jen pokud JE dostupná aktualizace (žádné hlášky, když je plugin aktuální)
+        getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
+                Player player = event.getPlayer();
+                showUpdatePrompt(player, true); // tahle metoda sama nic neposílá, pokud updateAvailable == false
+            }
+        }, this);
     }
 
     @Override
@@ -225,6 +254,171 @@ public final class TabSBS extends JavaPlugin {
         }
 
         getServer().getConsoleSender().sendMessage(border);
+    }
+    // někam do class TabSBS (např. pod sendStartupMessage)
+    public LangManager getLangManager() {
+        return this.lang;
+    }
+
+    /* =========================
+       Updater – veřejné API
+       ========================= */
+    public void setUpdateAvailable(boolean updateAvailable, String latestVersion) {
+        this.updateAvailable = updateAvailable;
+        this.latestVersion = latestVersion == null ? "" : latestVersion;
+    }
+    public boolean isUpdateAvailable() { return updateAvailable; }
+    public String getLatestVersion() { return latestVersion; }
+    public boolean hasDeclinedThisBoot(UUID uuid) { return declinedThisBoot.contains(uuid); }
+    public void markDeclinedThisBoot(UUID uuid) { declinedThisBoot.add(uuid); }
+
+    /** Vrátí verzi s 'v' prefixem pro zobrazení. */
+    private String displayVersion() {
+        String v = latestVersion == null ? "" : latestVersion.trim();
+        if (v.isEmpty()) return v;
+        return (v.startsWith("v") || v.startsWith("V")) ? v : "v" + v;
+    }
+
+    /** Kompatibilní alias pro UI: vrací poslední známou verzi s 'v' (nebo prázdný řetězec). */
+    public String getLatestVersionSafe() {
+        return displayVersion();
+    }
+    /** URL releasu pro tlačítko „open“ */
+    private String getReleaseUrl() {
+        String tag = getLatestVersion();
+        if (tag != null && !tag.isEmpty()) {
+            // normálně "vX.Y.Z", zachováme přesně co přišlo z API
+            return "https://github.com/DivishCZ/TabSBS/releases/tag/" + tag;
+        }
+        return "https://github.com/DivishCZ/TabSBS/releases/latest";
+    }
+
+    /** Lokalizační helper: vrátí text z LangManageru, nikdy null. */
+    private String L(String key) {
+        String s = (lang == null ? "" : lang.get(key));
+        return s == null ? "" : s;
+    }
+
+    /** Pošli stav updateru do chatu hráči (up-to-date i dostupná aktualizace), s ohledem na perm nebo OP. */
+    public void sendUpdateStatus(Player player) {
+        if (!(player.isOp() || player.hasPermission("tabsbs.update"))) return;
+
+        if (isUpdateAvailable()) {
+            // „Nová verze ... je dostupná“ (lang: update.available s %version%)
+            String raw = L("update.available").replace("%version%", getLatestVersionSafe());
+            if (!raw.isEmpty()) {
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(raw));
+            } else {
+                // fallback na původní hlavičku
+                player.sendMessage(buildUpdateHeaderLineFull());
+            }
+            String wish = L("update.wish_update");
+            if (!wish.isEmpty()) {
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(wish));
+            }
+            player.sendMessage(buildUpdateButtons()); // lokalizovaná tlačítka
+        } else {
+            String noUpd = L("update.no_update_available");
+            if (!noUpd.isEmpty()) {
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(noUpd));
+            }
+        }
+    }
+
+    /**
+     * Sjednocené zobrazení informace o updatu (zpětně kompatibilní varianta).
+     * @param player          cílový hráč
+     * @param afterJoinDelay  true = po joinu s ~3s zpožděním; false = hned
+     */
+    public void showUpdatePrompt(Player player, boolean afterJoinDelay) {
+        if (!isUpdateAvailable()) return;
+        if (!(player.isOp() || player.hasPermission("tabsbs.update"))) return;
+
+        Runnable task = () -> {
+            if (hasDeclinedThisBoot(player.getUniqueId())) {
+                // už dříve zrušil → jen krátké info, bez otázky a bez tlačítek
+                player.sendMessage(buildUpdateInfoLineOnly());
+                return;
+            }
+
+            // Lokalizovaná hlavička (pokud je v langu), jinak fallback
+            String raw = L("update.available").replace("%version%", getLatestVersionSafe());
+            if (!raw.isEmpty()) {
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(raw));
+            } else {
+                player.sendMessage(buildUpdateHeaderLineFull());
+            }
+
+            String wish = L("update.wish_update");
+            if (!wish.isEmpty()) {
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(wish));
+            }
+            player.sendMessage(buildUpdateButtons());
+        };
+
+        if (afterJoinDelay) {
+            Bukkit.getScheduler().runTaskLater(this, task, 60L); // ~3 sekundy
+        } else {
+            Bukkit.getScheduler().runTask(this, task);
+        }
+    }
+
+    /* ============ UI stavebnice (Adventure) ============ */
+
+    // Krátká informační verze – bez otázky a bez tlačítek (použito po "cancel" do restartu)
+    private Component buildUpdateInfoLineOnly() {
+        return Component.empty()
+                .append(Component.text("[TabSBS] ", NamedTextColor.YELLOW))
+                .append(Component.text("Nová verze pluginu ", NamedTextColor.GRAY))
+                .append(Component.text("TabSBS", NamedTextColor.GREEN))
+                .append(Component.text(" (" + displayVersion() + ") je dostupná.", NamedTextColor.GRAY));
+    }
+
+    // Plná hlavička (fallback pokud chybí lang klíče)
+    private Component buildUpdateHeaderLineFull() {
+        return Component.empty()
+                .append(Component.text("[TabSBS] ", NamedTextColor.YELLOW))
+                .append(Component.text("Nová verze pluginu ", NamedTextColor.GRAY))
+                .append(Component.text("TabSBS", NamedTextColor.GREEN))
+                .append(Component.text(" (" + displayVersion() + ") je dostupná.", NamedTextColor.GRAY));
+    }
+
+    // Interaktivní tlačítka – ✅ confirm / ❌ cancel / 🌐 open (lokalizovaná)
+    public Component buildUpdateButtons(LangManager lang) {
+        String confirm = lang.get("update.confirm");
+        String cancel  = lang.get("update.cancel");
+        String openLbl = lang.get("update.open");
+        if (confirm == null || confirm.isEmpty()) confirm = "Aktualizovat";
+        if (cancel  == null || cancel.isEmpty())  cancel  = "Zrušit";
+        if (openLbl == null || openLbl.isEmpty()) openLbl = "Otevřít release";
+
+        String releaseUrl = getReleaseUrl();
+
+        // Texty z lang mohou obsahovat &/§ → použijeme deserializér
+        Component cConfirm = LegacyComponentSerializer.legacyAmpersand().deserialize(confirm);
+        Component cCancel  = LegacyComponentSerializer.legacyAmpersand().deserialize(cancel);
+        Component cOpen    = LegacyComponentSerializer.legacyAmpersand().deserialize(openLbl);
+
+        return Component.empty()
+                .append(Component.text("[✅ ", NamedTextColor.GREEN, TextDecoration.BOLD)
+                        .append(cConfirm)
+                        .append(Component.text("]", NamedTextColor.GREEN, TextDecoration.BOLD))
+                        .clickEvent(ClickEvent.runCommand("/tabsbs update confirm")))
+                .append(Component.text("  "))
+                .append(Component.text("[❌ ", NamedTextColor.RED, TextDecoration.BOLD)
+                        .append(cCancel)
+                        .append(Component.text("]", NamedTextColor.RED, TextDecoration.BOLD))
+                        .clickEvent(ClickEvent.runCommand("/tabsbs update cancel")))
+                .append(Component.text("  "))
+                .append(Component.text("[🌐 ", NamedTextColor.AQUA, TextDecoration.BOLD)
+                        .append(cOpen)
+                        .append(Component.text("]", NamedTextColor.AQUA, TextDecoration.BOLD))
+                        .clickEvent(ClickEvent.openUrl(releaseUrl)));
+    }
+
+    // kompatibilní zkratka – použij aktuální lang
+    public Component buildUpdateButtons() {
+        return buildUpdateButtons(this.lang);
     }
 
     /**

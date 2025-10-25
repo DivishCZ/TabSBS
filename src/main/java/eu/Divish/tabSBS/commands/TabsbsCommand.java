@@ -1,5 +1,8 @@
 package eu.Divish.tabSBS.commands;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import eu.Divish.tabSBS.TabSBS;
 import eu.Divish.tabSBS.lang.LangManager;
 import eu.Divish.tabSBS.nametag.NametagService;
@@ -8,15 +11,20 @@ import eu.Divish.tabSBS.papi.PlaceholderValidator;
 import eu.Divish.tabSBS.scoreboard.ScoreboardConfig;
 import eu.Divish.tabSBS.scoreboard.ScoreboardRuntime;
 import eu.Divish.tabSBS.tablist.TabSortingService;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-// + přidej import:
-import org.bukkit.ChatColor;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,9 +40,7 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
     private static final LegacyComponentSerializer LEGACY_AMP = LegacyComponentSerializer.builder()
             .character('&').hexColors().useUnusualXRepeatedCharacterHexFormat().build();
 
-    private static String toLegacy(Component c) {
-        return (c == null) ? "" : LEGACY_AMP.serialize(c);
-    }
+    private static String toLegacy(Component c) { return (c == null) ? "" : LEGACY_AMP.serialize(c); }
 
     public TabsbsCommand(
             TabSBS plugin,
@@ -76,6 +82,7 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
                         msgKey(sender, "commands.scoreboard.refresh_ok");
                     } else usage(sender, label, "scoreboard refresh");
                 }
+
                 case "reload" -> {
                     requirePerm(sender, "tabsbs.reload");
                     msgKey(sender, "commands.reload.started");
@@ -83,10 +90,50 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
                         plugin.reloadAll();
                         msgKey(sender, "commands.reload.done");
                     } catch (Throwable t) {
-                        msgKey(sender, "commands.reload.failed", "type", t.getClass().getSimpleName(), "message", String.valueOf(t.getMessage()));
+                        msgKey(sender, "commands.reload.failed",
+                                "type", t.getClass().getSimpleName(),
+                                "message", String.valueOf(t.getMessage()));
                         t.printStackTrace();
                     }
+                }
 
+                // ===== UPDATE =====
+                case "update" -> {
+                    requirePerm(sender, "tabsbs.update");
+                    if (args.length < 2) { usage(sender, label, "update <confirm|cancel>"); break; }
+
+                    String what = args[1].toLowerCase(Locale.ROOT);
+
+                    if ("cancel".equals(what)) {
+                        if (sender instanceof Player pl) {
+                            plugin.markDeclinedThisBoot(pl.getUniqueId());
+                            sendLang(sender, "update.cancelled");
+                        } else {
+                            sendLang(sender, "update.cancelled");
+                        }
+                        break;
+                    }
+
+                    if ("confirm".equals(what)) {
+                        // když není dostupná aktualizace, nechceme zobrazovat tlačítka ani nic stahovat
+                        if (!plugin.isUpdateAvailable()) {
+                            sendLang(sender, "update.no_update_available");
+                            break;
+                        }
+                        sendLang(sender, "update.downloading");
+
+                        // stáhni asynchronně .jar do plugins/update/TabSBS.jar
+                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                            boolean ok = downloadLatestJar();
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                if (ok) sendLang(sender, "update.success");
+                                else    sendLang(sender, "update.failed");
+                            });
+                        });
+                        break;
+                    }
+
+                    usage(sender, label, "update <confirm|cancel>");
                 }
 
                 case "team" -> handleTeam(sender, label, Arrays.copyOfRange(args, 1, args.length));
@@ -116,7 +163,6 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
                 } else {
                     Player p = Bukkit.getPlayerExact(args[1]);
                     if (p == null) { msgKey(sender, "commands.common.player_not_online"); return; }
-                    // pozor: NametagService musí mít public applyFor(Player)
                     nametagSvc.applyFor(p);
                     msgKey(sender, "commands.nametag.refresh_one.ok", "player", p.getName());
                 }
@@ -196,7 +242,7 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
         msgKey(sender, "commands.team.target", "target", target.getName());
         msgKey(sender, "commands.team.team_line", "team", found.getName(), "options", options);
 
-        // === ZMĚNA: využij lang klíče pro prefix/suffix a převeď & → §, aby se barvy vykreslily ===
+        // === barvy v prefix/suffix ===
         try {
             String px = ensureSectionCodes(toLegacy(found.prefix()));
             String sx = ensureSectionCodes(toLegacy(found.suffix()));
@@ -233,7 +279,7 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
         s.sendMessage(lang.get("prefix") + lang.format(key, kv));
     }
     private void msgRaw(CommandSender s, String rawColored) {
-        s.sendMessage(lang.get("prefix") + rawColored); // rawColored už jde z langu = přeložené barvy
+        s.sendMessage(lang.get("prefix") + rawColored);
     }
     private void usage(CommandSender s, String label, String usage) {
         msgKey(s, "commands.usage", "label", label, "usage", usage);
@@ -242,12 +288,18 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
         if (s.hasPermission(node)) return;
         throw new NoPermission(node);
     }
+    // --- jednoduchý helper na poslání přeložené zprávy z lang ---
+    private void sendLang(CommandSender s, String key) {
+        String prefix = lang.get("prefix");
+        String msg = lang.get(key);
+        s.sendMessage((prefix == null ? "" : prefix) + (msg == null ? key : msg));
+    }
     private static final class NoPermission extends Exception { final String node; NoPermission(String n){this.node=n;} }
 
     // ------ TAB COMPLETER ------
     @Override
     public List<String> onTabComplete(CommandSender s, Command cmd, String alias, String[] args) {
-        if (args.length == 1) return begins(args[0], List.of("help","version","reload","sort","nametag","papi","scoreboard","team"));
+        if (args.length == 1) return begins(args[0], List.of("help","version","reload","sort","nametag","papi","scoreboard","team","update"));
         if (args.length == 2) {
             return switch (args[0].toLowerCase(Locale.ROOT)) {
                 case "sort" -> begins(args[1], List.of("now"));
@@ -255,10 +307,10 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
                 case "papi" -> begins(args[1], List.of("ensure","test"));
                 case "scoreboard" -> begins(args[1], List.of("refresh"));
                 case "team" -> online(args[1]);
+                case "update" -> begins(args[1], List.of("confirm","cancel"));
                 default -> List.of();
             };
         }
-
         if (args.length == 3) {
             return switch (args[0].toLowerCase(Locale.ROOT)) {
                 case "nametag" -> begins(args[2], withOnlinePlusAll());
@@ -269,6 +321,7 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
         }
         return List.of();
     }
+
     private List<String> withOnlinePlusAll() {
         List<String> out = new ArrayList<>();
         out.add("all");
@@ -284,10 +337,102 @@ public final class TabsbsCommand implements TabExecutor, TabCompleter {
     }
 
     // === NOVÉ: bezpečná konverze &-kódů na §-kódy pro zobrazení barev v klientovi ===
-    /** Vstup může mít &-kódy nebo už §-kódy. Vrátí text se §-kódy (viditelné barvy). */
     private static String ensureSectionCodes(String s) {
         if (s == null) return "";
-        if (s.indexOf('§') >= 0) return s; // už je převedeno
+        if (s.indexOf('§') >= 0) return s;
         return ChatColor.translateAlternateColorCodes('&', s);
+    }
+
+    /* =========================
+       Interní downloader (bez nové třídy)
+       ========================= */
+    private boolean downloadLatestJar() {
+        try {
+            String apiUrl = plugin.getConfig().getString(
+                    "updates.repo_api_url",
+                    "https://api.github.com/repos/DivishCZ/TabSBS/releases/latest"
+            );
+
+            // načti JSON releasu
+            HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("User-Agent", "TabSBS-UpdateCmd/" + plugin.getDescription().getVersion());
+            conn.setRequestProperty("Accept", "application/vnd.github+json");
+            conn.setConnectTimeout(7000);
+            conn.setReadTimeout(15000);
+
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                plugin.getLogger().warning("Update(download): HTTP " + conn.getResponseCode());
+                return false;
+            }
+
+            JsonObject rel;
+            try (InputStreamReader in = new InputStreamReader(conn.getInputStream())) {
+                rel = JsonParser.parseReader(in).getAsJsonObject();
+            } finally {
+                conn.disconnect();
+            }
+
+            // najdi .jar asset
+            JsonArray assets = rel.getAsJsonArray("assets");
+            if (assets == null || assets.size() == 0) {
+                plugin.getLogger().warning("Update(download): release nemá assets.");
+                return false;
+            }
+
+            String downloadUrl = null;
+            for (int i = 0; i < assets.size(); i++) {
+                JsonObject a = assets.get(i).getAsJsonObject();
+                String name = a.get("name").getAsString();
+                if (name != null && name.toLowerCase().endsWith(".jar")) {
+                    if (name.toLowerCase().contains("tabsbs")) {
+                        downloadUrl = a.get("browser_download_url").getAsString();
+                        break;
+                    }
+                    if (downloadUrl == null) {
+                        downloadUrl = a.get("browser_download_url").getAsString();
+                    }
+                }
+            }
+            if (downloadUrl == null) {
+                plugin.getLogger().warning("Update(download): nenašel jsem .jar asset.");
+                return false;
+            }
+
+            // stáhni do plugins/update/TabSBS.jar
+            File updateDir = new File(plugin.getDataFolder().getParentFile(), "update");
+            if (!updateDir.exists() && !updateDir.mkdirs()) {
+                plugin.getLogger().warning("Update(download): nelze vytvořit složku " + updateDir.getAbsolutePath());
+                return false;
+            }
+            File outFile = new File(updateDir, "TabSBS.jar");
+
+            HttpURLConnection dcon = (HttpURLConnection) new URL(downloadUrl).openConnection();
+            dcon.setRequestProperty("User-Agent", "TabSBS-UpdateCmd/" + plugin.getDescription().getVersion());
+            dcon.setConnectTimeout(7000);
+            dcon.setReadTimeout(60000);
+
+            if (dcon.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                plugin.getLogger().warning("Update(download): download HTTP " + dcon.getResponseCode());
+                dcon.disconnect();
+                return false;
+            }
+
+            try (BufferedInputStream in = new BufferedInputStream(dcon.getInputStream());
+                 FileOutputStream out = new FileOutputStream(outFile)) {
+                byte[] buf = new byte[8192];
+                int r;
+                while ((r = in.read(buf)) != -1) out.write(buf, 0, r);
+            } finally {
+                dcon.disconnect();
+            }
+
+            plugin.getLogger().info("Update(download): staženo do " + outFile.getAbsolutePath());
+            return true;
+
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Update(download) selhal: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+            return false;
+        }
     }
 }
