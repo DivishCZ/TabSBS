@@ -1,0 +1,325 @@
+# ======================================================================
+# TabSBS – Konfigurace (CZ/EN)
+# CZ: Tento soubor nastavuje chování pluginu. Každá sekce je oddělená.
+# EN: This file configures the plugin behavior. Each section is separated.
+# ======================================================================
+
+config-version: 1
+
+# ----------------------------------------------------------------------
+# [JAZYK / LANGUAGE]
+# CZ: Jazyk zpráv pluginu: cz | en | de
+# EN: Plugin messages language: cz | en | de
+# ----------------------------------------------------------------------
+language: cz
+
+# ----------------------------------------------------------------------
+# [SVĚTY / WORLDS]
+# CZ: Seznam světů, kde se Scoreboard NEzobrazí. Přepínač whitelist/blacklist:
+#     - as_whitelist: false => seznam je BLACKLIST (ve vyjmenovaných světech vypnuto)
+#     - as_whitelist: true  => seznam je WHITELIST (povoleno jen ve vyjmenovaných světech)
+# EN: Worlds where the Scoreboard is disabled. Whitelist/blacklist switch:
+#     - as_whitelist: false => list acts as BLACKLIST (disabled in listed worlds)
+#     - as_whitelist: true  => list acts as WHITELIST (enabled only in listed worlds)
+# ----------------------------------------------------------------------
+worlds:
+  disabled:
+    as_whitelist: false
+    list:
+      - city
+
+# ======================================================================
+# ============================ SCOREBOARD ==============================
+# ======================================================================
+modules:
+  scoreboard:
+    # --------------------- ZÁKLAD / BASICS ----------------------------
+    # CZ: Zapnutí/Vypnutí celé funkcionality Scoreboardu.
+    # EN: Enable/Disable the whole Scoreboard feature.
+    enabled: true
+
+    # CZ: Název (Title) scoreboardu. Doporučení: do ~48 znaků kvůli klientovi.
+    # EN: Scoreboard title. Recommendation: keep under ~48 characters for client limits.
+    title: "&b&lTabSBS"
+
+    # CZ: Obnovovací interval ve vteřinách. Pro okamžité změny nastav 1.
+    # EN: Update interval in seconds. Set to 1 for near-instant updates.
+    update_delay_seconds: 2
+
+    # ---------------------- POLOŽKY / ITEMS ----------------------------
+    # CZ: Definice řádků scoreboardu. Každý řádek je samostatná položka.
+    #     Používají se pouze & barvy (legacy kódy).
+    # EN: Scoreboard lines. Each item is a separate line.
+    #     Only & color codes are used (legacy).
+    #
+    # CZ: Přehled běžných placeholderů (příklady; vyžadují PAPI expansiony):
+    #   SERVER:
+    #     - %server_online%            (aktuální online hráči)
+    #     - %server_max_players%       (max hráčů)
+    #     - %server_tps_1%             (TPS 1m)
+    #   PLAYER:
+    #     - %player_name%, %player_displayname%, %player_ping%
+    #     - %player_total_exp%
+    #   VAULT (ekonomika / prefixy přes Vault-Chat):
+    #     - %vault_eco_balance% / %vault_eco_balance_formatted%
+    #     - %vault_prefix%, %vault_suffix%, %vault_rank%
+    #   STATISTIC (vanilla statistiky):
+    #     - %statistic_player_kills%   (zabité hráče)
+    #     - %statistic_deaths%         (úmrtí)
+    # EN: Common placeholders (examples; require PAPI expansions):
+    #   SERVER:
+    #     - %server_online%, %server_max_players%, %server_tps_1%
+    #   PLAYER:
+    #     - %player_name%, %player_displayname%, %player_ping%, %player_total_exp%
+    #   VAULT:
+    #     - %vault_eco_balance% / %vault_eco_balance_formatted%
+    #     - %vault_prefix%, %vault_suffix%, %vault_rank%
+    #   STATISTIC:
+    #     - %statistic_player_kills%, %statistic_deaths%
+    #
+    # CZ: Krátké ALIASY (plugin je automaticky přemapuje):
+    #   - %online%  -> %server_online%
+    #   - %exp%     -> %player_total_exp%
+    #   - %money%   -> %vault_eco_balance_formatted%
+    #   - %kills%   -> %statistic_player_kills%
+    #   - %deaths%  -> %statistic_deaths%
+    # EN: Short ALIASES (auto-mapped by plugin):
+    #   - %online%  -> %server_online%
+    #   - %exp%     -> %player_total_exp%
+    #   - %money%   -> %vault_eco_balance_formatted%
+    #   - %kills%   -> %statistic_player_kills%
+    #   - %deaths%  -> %statistic_deaths%
+    #
+    # CZ: Příklady řádků (můžeš upravit/smazat):
+    # EN: Example lines (edit/remove as needed):
+    items:
+      - "&7» Online: &f%online%"
+      - "&7» Zabiti: &f%kills%"
+      - "&7» Umrti: &f%deaths%"
+      - "&7» Expy: &f%exp%"
+      - "&7» Peníze: &f%money%"
+
+    # -------------------- ZDROJE / SOURCES -----------------------------
+    # CZ: Integrace s PAPI/Vault. Plugin při startu zkontroluje jejich přítomnost.
+    # EN: Integrations with PAPI/Vault. The plugin enforces their presence on startup.
+    integrations:
+      use_placeholderapi: true
+      use_vault_economy: true
+      use_vault_chat: true   # CZ: pro prefix/suffix/rank přes Vault/PEX | EN: PEX prefixes via Vault
+
+    # ------------------ DOČASNÝ BOARD / TEMP BOARD ---------------------
+    # CZ: Krátkodobě zobrazený „top“ scoreboard podle vybrané metriky (pouze & barvy).
+    #     Během "show" fáze se zobrazí TOP tabulka; po "hide" fázi se vrátí statický board.
+    # EN: Temporarily displayed “top” scoreboard by selected metric (& colors only).
+    #     During "show" phase, the TOP board appears; after "hide", the static one returns.
+    temp_board:
+      enabled: true
+      title: "&a&lThe best killers"
+      # CZ: Typ/metrika pro řazení (PAPI). Příklad: "%kills%" alias nebo "%statistic_player_kills%".
+      # EN: Metric used for ranking (PAPI). Example: "%kills%" alias or "%statistic_player_kills%".
+      # CZ: Krátké ALIASY (plugin je automaticky přemapuje):
+      #   - %online%  -> %server_online%
+      #   - %exp%     -> %player_total_exp%
+      #   - %money%   -> %vault_eco_balance_formatted%
+      #   - %kills%   -> %statistic_player_kills%
+      #   - %deaths%  -> %statistic_deaths%
+      # EN: Short ALIASES (auto-mapped by plugin):
+      #   - %online%  -> %server_online%
+      #   - %exp%     -> %player_total_exp%
+      #   - %money%   -> %vault_eco_balance_formatted%
+      #   - %kills%   -> %statistic_player_kills%
+      #   - %deaths%  -> %statistic_deaths%
+      metric: "%kills%"
+      # CZ/EN: Barva hodnot (např. &6).
+      value_color: "&6"
+      # CZ/EN: Počet zobrazených hráčů (max. 15 doporučeno).
+      top_count: 5
+      # CZ/EN: Interval zobrazení / skrytí (sekundy).
+      interval_show_seconds: 20
+      interval_hide_seconds: 10
+
+    # ----------------- VIDITELNOST / VISIBILITY ------------------------
+    # CZ/EN: Rezervováno pro budoucí podmínky zobrazení (eventy, combat apod.).
+    visibility:
+      reserved_for_future: false
+
+# ======================================================================
+# ================ DALŠÍ MODULY (ZATÍM PRÁZDNÉ / TODO) ================
+# ======================================================================
+
+# CZ: Rezervováno pro budoucí části (Tablist, Nametagy, Řazení v TABu atd.).
+# EN: Reserved for upcoming modules (Tablist, Nametags, TAB sorting, etc.).
+# ======================================================================
+# ============================== TABLIST ===============================
+# ======================================================================
+  tablist:
+    # --------------------- ZÁKLAD / BASICS ----------------------------
+    # CZ: Zapnutí/Vypnutí Tablistu (header/footer + efekty + řazení).
+    # EN: Enable/Disable Tablist module (header/footer + effects + sorting).
+    enabled: true
+
+    # CZ: Interval aktualizací (sekundy). Může být i zlomkové číslo (např. 0.5).
+    # EN: Update interval in seconds (can be fractional, e.g., 0.5).
+    update_delay_seconds: 1.0
+
+    # ------------------- HEADER / FOOTER TEXTY ------------------------
+    # CZ: Víceřádkové pomocí '\n'. PAPI povoleno. Pouze & barvy.
+    # EN: Multi-line with '\n'. PAPI enabled. Only & color codes.
+    header: "&6Vítej, %player_name%!\n&aUžij si hru!"
+    footer: "&eOnline hráči: &b%server_online%"
+
+    # ------------------- AFK SETTINGS  ------------------------
+    afk_display:
+      enabled: true
+      # EssentialsX AFK – už ti jede:
+      placeholder: "%essentials_afk%"
+      # jaké hodnoty považovat za "AFK = true" (case-insensitive, bez barev):
+      true_values: [ "yes","true","1" ]
+
+      # Jak zobrazit AFK stav: suffix | recolor | both
+      mode: "suffix"
+
+      # Suffix přidaný ZA jméno (používej & barvy):
+      suffix: " &7[&eAFK&7]"
+
+      # Recolor nastavení, pokud mode = recolor/both:
+      recolor_color: "&7"     # cílová barva pro celé jméno
+      keep_formats: true      # ponechat formátování (&l, &n, &o, &m, &k)
+
+    # ----------------------- EFEKTY TEXTU -----------------------------
+    # CZ: Jednoduché vizuální efekty nad header/footer.
+    # EN: Simple visual effects over header/footer.
+    effects:
+      # CZ: Posouvání textu (marquee). Pokud je kratší než min_width, doplní mezery.
+      # EN: Horizontal marquee scroll. If shorter than min_width, pads with spaces.
+      scroll:
+        header: false
+        footer: false
+        speed_chars_per_step: 1           # kolik znaků se posune na jeden krok
+        min_width: 40                      # minimální šířka "okna" (doplnění mezerami)
+
+      # CZ: Duha – cyklení & barev přes text.
+      # EN: Rainbow – cycles & colors over the text.
+      rainbow:
+        header: false
+        footer: false
+        palette: ["&c","&6","&e","&a","&b","&9","&d"]  # pořadí barev
+        step_per_update: 1                               # posun palety na update
+
+      # CZ: Pulzování – střídání dvou barev prefixem každého řádku.
+      # EN: Pulse – toggles between two colors as a text prefix per line.
+      pulse:
+        header: false
+        footer: false
+        color_a: "&f"
+        color_b: "&7"
+
+
+    max_list_name_chars: 80    #Default 80
+
+    # ---------------------- ŘAZENÍ V TABU -----------------------------
+    # CZ: Seřazení hráčů v Tablistu pomocí scoreboard týmů.
+    #     Zdroj skupin/prefixů přes Vault (PEX/LuckPerms).
+    # EN: Order players in Tablist using scoreboard teams. Source via Vault.
+    sorting:
+      enabled: true
+      enforce_via_protocollib: false #Prozatím neaktivní z důvodu špatné kompatibility PL5.4.0
+
+      # CZ: Režim řazení: none | group | prefix
+      # EN: Sorting mode: none | group | prefix
+      scoreboard_mode: "per_viewer"     # per_viewer | shared
+      anti_override:
+        enforce_scoreboard: true        # vrať zpět náš scoreboard, když ho někdo přepíše
+        check_every_ticks: 20           # interval kontroly (1s)
+        log: true
+
+      # CZ: Zdroje dat: vault_chat čte prefix/suffix a groupy přes Vault (PEX kompatibilní).
+      # EN: Data source: vault_chat reads prefix/suffix and groups via Vault (PEX compatible).
+      source: "vault_chat"
+
+      types:
+        # 1) pořadí skupin (přednostně):
+        - { type: GROUP_ORDER, order: [ "majitel","admin","mod","vip","default" ] }
+        # 2) match na prefixy (bez barev, case-insensitive):
+        - { type: PREFIX_MATCH, order: [ "*kokot*","*sponzor*" ] }
+        # 3) PAPI číslo – čím VYŠŠÍ, tím dřív (desc=true):
+        - { type: PAPI_NUMBER, placeholder: "%statistic_player_kills%", desc: true }
+        # 4) PAPI řetězec – explicitní pořadí:
+        - { type: PAPI_STRING, placeholder: "%essentials_afk%", order: [ "no","yes" ] }
+        # 5) fallback podle jména:
+        - { type: NAME, desc: false }
+
+      # CZ: Priority skupin/prefixů (vyšší nahoře). Uveď názvy PEX/LuckPerms skupin
+      #     nebo prefixy, podle zvoleného "mode". Neznámé spadnou do default_priority.
+      # EN: Priority list (higher first). Use group names or prefixes based on "mode".
+      priority:
+        - "owner"
+        - "admin"
+        - "mod"
+        - "vip"
+        - "default"
+
+      # CZ: Výchozí priorita pro nespárované hráče (vyšší = výše).
+      # EN: Default priority for unmatched players (higher = earlier).
+      default_priority: -1
+
+      # CZ: Při stejné prioritě seřaď dle jména: asc | desc
+      # EN: Tie-breaker by name: asc | desc
+      tie_breaker_name: "asc"
+
+      # CZ: Přidat číselný prefix do team name, aby se udrželo pořadí (0–99).
+      # EN: Add numeric prefix into team name to enforce order (0–99).
+      team_number_padding: 2
+
+      # CZ: Přepsat display jména v TAB barvami/prefixy z Vault? (může kolidovat s jinými pluginy)
+      # EN: Override TAB names with Vault colors/prefixes? (may conflict with others)
+      decorate_names: true
+
+    # ---------------------- POKROČILÉ / ADVANCED ----------------------
+    # CZ: Cache PAPI hodnot (sekundy) pro výkon (0 = vypnuto).
+    # EN: Cache PAPI values (seconds) for performance (0 = off).
+    papi_cache_seconds: 0.25
+
+    # CZ: Respektovat per-world vypnutí (sekce worlds.disabled)? true/false
+    # EN: Respect global per-world disable list (worlds.disabled)? true/false
+    respect_worlds_gate: true
+
+    # CZ: Při připojení hráče zobrazit header/footer okamžitě (mimo periodických update).
+    # EN: Push header/footer immediately on join (besides periodic updates).
+    push_on_join: true
+  # ======================================================================
+  # ============================== NAMETAG ===============================
+  # ======================================================================
+  nametag:
+    enabled: true
+    # odkud brát texty; používáme Vault Chat, takže nech "vault_chat"
+    source: "vault_chat"
+
+    # jak barvit jméno (barva hráčova nicku):
+    color:
+      mode: "auto_from_prefix"       # auto_from_prefix | force | none
+      force: "&7"                    # použije se jen když mode = force
+
+    # AFK overlay do nametagu:
+    apply_afk: true                  # true = promítne se i do nametagu (suffix/recolor dle afk_display.*)
+
+    # ořezy prefix/suffix (při dlouhých textech)
+    max_prefix_chars: 32
+    max_suffix_chars: 32
+
+    # viditelnost name tagu (Team Option)
+    name_tag_visibility: "ALWAYS"    # ALWAYS | NEVER | HIDE_FOR_OTHER_TEAMS | HIDE_FOR_OWN_TEAM
+
+    # jaký scoreboard pro nasazování nametag týmů použít:
+    scoreboard_mode: "per_viewer"    # per_viewer | shared
+
+    # jak často přepočítat/propagovat nametagy (s):
+    update_delay_seconds: 1.0
+# ----------------------------------------------------------------------
+# [AKTUALIZACE / UPDATES]
+# CZ: Auto-update přidáme až na závěr projektu (zatím vypnuto).
+# EN: Auto-update will be added at the end of the project (disabled for now).
+# ----------------------------------------------------------------------
+updates:
+  enabled: false
+  repo_api_url: "https://api.github.com/repos/DivishCZ/TabSBS/releases/latest"  # upravíme dle repa

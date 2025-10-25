@@ -1,0 +1,98 @@
+startup:
+  deps:
+    missing_papi: "&cChybí PlaceholderAPI nebo není povolen. Vypínám TabSBS."
+    missing_vault: "&cChybí Vault nebo není povolen. Vypínám TabSBS."
+    install_hint: "&eNainstaluj/povol chybějící pluginy a restartuj server."
+    ok: "&aZávislosti OK: PlaceholderAPI a Vault nalezeny."
+
+  box:
+    created_by: "&7Vytvořil: &9{author}&8"
+    version_plugin: "&aStable version TabSBS: &6{version}&8"
+    version_server: "&7Plugin běží na &b{server} &7verzi &9{bukkit}&8"
+
+  papi:
+    scan:
+      begin: "&7[PAPI] Kontroluji placeholdery potřebné v pluginu..."
+      ok: "&a[PAPI] Všechny placeholdery vypadají v pořádku."
+      warn_header: "&e[PAPI] Nalezeny neznámé/nevyhodnocené placeholdery:"
+      unresolved_item: "&7 - &f{raw} &8→ &7{result}"
+      warn_footer: "&6Zkontroluj prosím config a doinstaluj odpovídající PAPI expansion."
+      error: "&c[PAPI] Při validaci placeholderů došlo k chybě."
+    auto:
+      no_required: "&7[PAPI] V configu nebyly zjištěny žádné placeholdery vyžadující eCloud expansiony."
+      all_present: "&a[PAPI] Vše potřebné už je nainstalováno: {list}"
+      downloading: "&e[PAPI] Stahuji chybějící expansiony: {list}"
+      installed_ok: "&a[PAPI] Úspěšně nainstalováno: {list}"
+      installed_partial: "&6[PAPI] Některé expansiony se nepodařilo zprovoznit: {list}"
+
+tablist:
+  vault:
+    no_perm_provider: "&e[Tablist]&7 Vault je přítomný, ale &cnenašel jsem Permission provider&7 (např. LuckPerms). Řazení podle skupin bude omezené."
+    no_chat_provider: "&e[Tablist]&7 Vault je přítomný, ale &cnenašel jsem Chat provider&7 (prefixy/suffixy přes Vault nebudou dostupné)."
+
+prefix: "&8[&aTab&6SBS&8] "
+
+commands:
+  usage: "&cPoužití: &f/{label} {usage}"
+  no_permission: "&c✖ Nemáš oprávnění: &7{node}"
+  error: "&c✖ Chyba: &7{type}: {message}"
+
+  version: "&aTabSBS &fv{version} &7na &f{server} {bukkit}"
+
+  help:
+    text: |
+      &6/{label} help &8–&7 nápověda
+      &6/{label} version &8–&7 verze pluginu
+      &6/{label} sort now &8–&7 přepočítat pořadí v TABu
+      &6/{label} nametag refresh [player|all] &8–&7 přegenerovat NT
+      &6/{label} nametag clear [player|all] &8–&7 vyčistit NT týmy
+      &6/{label} team [player] [viewer] &8–&7 diagnostika týmů
+      &6/{label} papi ensure &8–&7 doinstalovat potřebné expanze
+      &6/{label} papi test <placeholder> [player] &8–&7 otestovat placeholder
+      &6/{label} scoreboard refresh &8–&7 přerenderovat scoreboard
+      &6/{label} reload &8–&7 znovunačtení konfigurace a jazyků
+
+  sort:
+    now:
+      ok: "&a✔ Seřazení TABu aktualizováno."
+
+  scoreboard:
+    refresh_ok: "&a✔ Scoreboard přepočítán."
+
+  common:
+    player_not_online: "&c✖ Hráč není online."
+    target_player_required: "&c✖ Uveď online hráče nebo spusť z hráče."
+
+  nametag:
+    refresh_all:
+      ok: "&a✔ Nametagy znovu vygenerovány pro všechny online."
+    refresh_one:
+      ok: "&a✔ Nametag obnoven pro &f{player}"
+    clear_all:
+      ok: "&eℹ Vyčištěny NT týmy pro všechny online."
+    clear_one:
+      ok: "&eℹ Vyčištěn NT tým pro &f{player}"
+
+  papi:
+    ensure:
+      started: "&a✔ Spuštěna kontrola/instalace expanzí. Sleduj konzoli."
+    test:
+      ok: "&a✔ Placeholder funguje pro &f{player}"
+      fail: "&c✖ Placeholder se nevyhodnotil pro &f{player}"
+
+  team:
+    no_viewer_online: "&c✖ Není online žádný hráč (viewer)."
+    not_in_team: "&eℹ {player} není v žádném teamu na scoreboardu viewer-a {viewer}."
+    viewer: "&bViewer: &f{viewer}"
+    target: "&bTarget: &f{target}"
+    team_line: "&bTeam: &f{team} &7({options}&7)"
+    prefix: "&f{target} &7Prefix: &r{prefix}"
+    suffix: "&f{target} &7Suffix: &r{suffix}"
+
+  reload:
+    started: "&eProvádím reload pluginu..."
+    done: "&aHotovo! Plugin znovu načten."
+    failed: "&cChyba při reloadu: &7{type}: {message}"
+
+misc:
+  internal_error: "&cNastala neočekávaná chyba. Zkontroluj konzoli."

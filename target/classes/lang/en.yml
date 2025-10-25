@@ -1,0 +1,99 @@
+startup:
+  deps:
+    missing_papi: "&cPlaceholderAPI is missing or not enabled. Disabling TabSBS."
+    missing_vault: "&cVault is missing or not enabled. Disabling TabSBS."
+    install_hint: "&ePlease install/enable the missing plugin(s) and restart the server."
+    ok: "&aDependencies OK: PlaceholderAPI and Vault found."
+
+  box:
+    created_by: "&7Created by: &9{author}&8"
+    version_plugin: "&aStable version TabSBS: &6{version}&8"
+    version_server: "&7Plugin running on &b{server} &7version &9{bukkit}&8"
+
+  papi:
+    scan:
+      begin: "&7[PAPI] Checking placeholders required by the plugin..."
+      ok: "&a[PAPI] All placeholders look fine."
+      warn_header: "&e[PAPI] Found unknown/unresolved placeholders:"
+      unresolved_item: "&7 - &f{raw} &8→ &7{result}"
+      warn_footer: "&6Please review the config and install the appropriate PAPI expansion."
+      error: "&c[PAPI] An error occurred while validating placeholders."
+    auto:
+      no_required: "&7[PAPI] No expansions required by the current config."
+      all_present: "&a[PAPI] All required expansions are already installed: {list}"
+      downloading: "&e[PAPI] Downloading missing expansions: {list}"
+      installed_ok: "&a[PAPI] Installed successfully: {list}"
+      installed_partial: "&6[PAPI] Some expansions failed to install: {list}"
+
+tablist:
+  vault:
+    no_perm_provider: "&e[Tablist]&7 Vault is present but &cno Permission provider found&7 (e.g., LuckPerms). Group-based sorting will be limited."
+    no_chat_provider: "&e[Tablist]&7 Vault is present but &cno Chat provider found&7 (prefix/suffix via Vault won't be available)."
+
+prefix: "&8[&aTab&6SBS&8] "
+
+commands:
+  usage: "&cUsage: &f/{label} {usage}"
+  no_permission: "&c✖ You don't have permission: &7{node}"
+  error: "&c✖ Error: &7{type}: {message}"
+
+  version: "&aTabSBS &fv{version} &7on &f{server} {bukkit}"
+
+  help:
+    text: |
+      &6/{label} help &8–&7 show help
+      &6/{label} version &8–&7 plugin version
+      &6/{label} sort now &8–&7 recompute TAB order
+      &6/{label} nametag refresh [player|all] &8–&7 regenerate NT
+      &6/{label} nametag clear [player|all] &8–&7 clear NT teams
+      &6/{label} team [player] [viewer] &8–&7 team diagnostics
+      &6/{label} papi ensure &8–&7 fetch required expansions
+      &6/{label} papi test <placeholder> [player] &8–&7 test a placeholder
+      &6/{label} scoreboard refresh &8–&7 re-render scoreboard
+      &6/{label} reload &8–&7 reloads the configuration and languages
+
+  sort:
+    now:
+      ok: "&a✔ TAB order updated."
+
+  scoreboard:
+    refresh_ok: "&a✔ Scoreboard refreshed."
+
+  common:
+    player_not_online: "&c✖ Player is not online."
+    target_player_required: "&c✖ Provide an online player or run it as a player."
+
+  nametag:
+    refresh_all:
+      ok: "&a✔ Nametags regenerated for all online players."
+    refresh_one:
+      ok: "&a✔ Nametag refreshed for &f{player}"
+    clear_all:
+      ok: "&eℹ Cleared NT teams for all online players."
+    clear_one:
+      ok: "&eℹ Cleared NT team for &f{player}"
+
+  papi:
+    ensure:
+      started: "&a✔ Expansion check/install started. Watch the console."
+    test:
+      ok: "&a✔ Placeholder works for &f{player}"
+      fail: "&c✖ Placeholder did not resolve for &f{player}"
+
+  team:
+    no_viewer_online: "&c✖ No online player (viewer) is available."
+    not_in_team: "&eℹ {player} is not in any team on viewer {viewer}'s scoreboard."
+    viewer: "&bViewer: &f{viewer}"
+    target: "&bTarget: &f{target}"
+    team_line: "&bTeam: &f{team} &7({options}&7)"
+    prefix: "&f{target} &7Prefix: &r{prefix}"
+    suffix: "&f{target} &7Suffix: &r{suffix}"
+
+
+  reload:
+    started: "&eReloading the plugin..."
+    done: "&aDone! Plugin reloaded."
+    failed: "&cReload failed: &7{type}: {message}"
+
+misc:
+  internal_error: "&cAn unexpected error occurred. Check the console."

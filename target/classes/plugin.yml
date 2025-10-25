@@ -1,0 +1,43 @@
+name: TabSBS
+main: eu.Divish.tabSBS.TabSBS
+version: 1.0.6
+api-version: '1.21'
+author: Divish
+website: https://example.com
+softdepend:
+  - ProtocolLib
+  - PlaceholderAPI
+  - Vault
+commands:
+  tabsbs:
+    description: "TabSBS management"
+    aliases: [tab, sbs]
+    usage: "/tabsbs help"
+    permission: tabsbs.use
+
+permissions:
+  tabsbs.use:
+    default: true
+
+  tabsbs.sort.now:
+    default: op
+
+  tabsbs.nametag.refresh:
+    default: op
+  tabsbs.nametag.clear:
+    default: op
+
+  tabsbs.debug.team:
+    default: op
+
+  tabsbs.papi.ensure:
+    default: op
+  tabsbs.papi.test:
+    default: op
+
+  tabsbs.scoreboard.refresh:
+    default: op
+
+  tabsbs.reload:
+    description: Reload TabSBS
+    default: op

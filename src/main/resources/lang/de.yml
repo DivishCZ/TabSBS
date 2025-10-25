@@ -1,0 +1,98 @@
+startup:
+  deps:
+    missing_papi: "&cPlaceholderAPI fehlt oder ist nicht aktiviert. TabSBS wird deaktiviert."
+    missing_vault: "&cVault fehlt oder ist nicht aktiviert. TabSBS wird deaktiviert."
+    install_hint: "&eBitte fehlende Plugins installieren/aktivieren und den Server neu starten."
+    ok: "&aAbhängigkeiten OK: PlaceholderAPI und Vault gefunden."
+
+  box:
+    created_by: "&7Erstellt von: &9{author}&8"
+    version_plugin: "&aStabile Version TabSBS: &6{version}&8"
+    version_server: "&7Plugin läuft auf &b{server} &7Version &9{bukkit}&8"
+
+  papi:
+    scan:
+      begin: "&7[PAPI] Prüfe die vom Plugin benötigten Platzhalter..."
+      ok: "&a[PAPI] Alle Platzhalter sehen gut aus."
+      warn_header: "&e[PAPI] Unbekannte/nicht aufgelöste Platzhalter gefunden:"
+      unresolved_item: "&7 - &f{raw} &8→ &7{result}"
+      warn_footer: "&6Bitte Konfiguration prüfen und passende PAPI-Expansion installieren."
+      error: "&c[PAPI] Beim Validieren der Platzhalter ist ein Fehler aufgetreten."
+    auto:
+      no_required: "&7[PAPI] Keine Erweiterungen durch die aktuelle Konfiguration erforderlich."
+      all_present: "&a[PAPI] Alle benötigten Erweiterungen sind bereits installiert: {list}"
+      downloading: "&e[PAPI] Lade fehlende Erweiterungen herunter: {list}"
+      installed_ok: "&a[PAPI] Erfolgreich installiert: {list}"
+      installed_partial: "&6[PAPI] Einige Erweiterungen konnten nicht installiert werden: {list}"
+
+tablist:
+  vault:
+    no_perm_provider: "&e[Tablist]&7 Vault ist vorhanden, aber &ckein Permission-Provider gefunden&7 (z. B. LuckPerms). Gruppensortierung ist eingeschränkt."
+    no_chat_provider: "&e[Tablist]&7 Vault ist vorhanden, aber &ckein Chat-Provider gefunden&7 (Prefix/Suffix über Vault nicht verfügbar)."
+
+prefix: "&8[&aTab&6SBS&8] "
+
+commands:
+  usage: "&cBenutzung: &f/{label} {usage}"
+  no_permission: "&c✖ Keine Berechtigung: &7{node}"
+  error: "&c✖ Fehler: &7{type}: {message}"
+
+  version: "&aTabSBS &fv{version} &7auf &f{server} {bukkit}"
+
+  help:
+    text: |
+      &6/{label} help &8–&7 Hilfe anzeigen
+      &6/{label} version &8–&7 Plugin-Version
+      &6/{label} sort now &8–&7 TAB-Reihenfolge neu berechnen
+      &6/{label} nametag refresh [player|all] &8–&7 NT neu erzeugen
+      &6/{label} nametag clear [player|all] &8–&7 NT-Teams leeren
+      &6/{label} team [player] [viewer] &8–&7 Team-Diagnose
+      &6/{label} papi ensure &8–&7 benötigte Erweiterungen laden
+      &6/{label} papi test <placeholder> [player] &8–&7 Placeholder testen
+      &6/{label} scoreboard refresh &8–&7 Scoreboard neu rendern
+      &6/{label} reload &8–&7 lädt die Konfiguration und Sprachen neu
+
+  sort:
+    now:
+      ok: "&a✔ TAB-Reihenfolge aktualisiert."
+
+  scoreboard:
+    refresh_ok: "&a✔ Scoreboard aktualisiert."
+
+  common:
+    player_not_online: "&c✖ Spieler ist nicht online."
+    target_player_required: "&c✖ Gib einen online Spieler an oder führe den Befehl als Spieler aus."
+
+  nametag:
+    refresh_all:
+      ok: "&a✔ Nametags für alle Online-Spieler neu erzeugt."
+    refresh_one:
+      ok: "&a✔ Nametag für &f{player} aktualisiert"
+    clear_all:
+      ok: "&eℹ NT-Teams für alle Online-Spieler geleert."
+    clear_one:
+      ok: "&eℹ NT-Team für &f{player} geleert"
+
+  papi:
+    ensure:
+      started: "&a✔ Erweiterungsprüfung/-installation gestartet. Sieh in die Konsole."
+    test:
+      ok: "&a✔ Placeholder funktioniert für &f{player}"
+      fail: "&c✖ Placeholder wurde für &f{player} nicht aufgelöst"
+
+  team:
+    no_viewer_online: "&c✖ Kein Online-Spieler (Viewer) verfügbar."
+    not_in_team: "&eℹ {player} ist in keinem Team auf dem Scoreboard von {viewer}."
+    viewer: "&bViewer: &f{viewer}"
+    target: "&bZiel: &f{target}"
+    team_line: "&bTeam: &f{team} &7({options}&7)"
+    prefix: "&f{target} &7Prefix: &r{prefix}"
+    suffix: "&f{target} &7Suffix: &r{suffix}"
+
+  reload:
+    started: "&ePlugin wird neu geladen..."
+    done: "&aFertig! Plugin neu geladen."
+    failed: "&cFehler beim Reload: &7{type}: {message}"
+
+misc:
+  internal_error: "&cEin unerwarteter Fehler ist aufgetreten. Siehe Konsole."
