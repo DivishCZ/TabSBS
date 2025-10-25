@@ -1,34 +1,19 @@
-# === Lokální konfigy / tajemství (pokud máš) ===
-*.local.yml
-*.secret.yml
-*.env
+# Maven build output
+/target/
 
+# IntelliJ project files
+.idea/
+*.iml
 
-# === Archiv/produkty buildů ===
-*.jar
-*.war
-*.zip
-# Pokud chceš verzovat vydané JARy, používej složku releases a povol ji:
-!releases/
-releases/**.jar
-
-# === VSCode (pokud používáš) ===
-.vscode/
-
-# === Java ===
+# Logs
 *.log
-*.class
-*.hprof
 
-# === OS ===
+# OS-specific
 .DS_Store
 Thumbs.db
 
-# === IntelliJ IDEA ===
-.idea/
-*.iml
-out/
+# Compiled class files
+*.class
 
-# === Maven ===
-target/
-!.mvn/wrapper/maven-wrapper.jar
+# Language files or backups
+*.yml~
