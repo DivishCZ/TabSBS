@@ -30,6 +30,9 @@ import java.util.*;
  * - clearFor() čistí i když je modul vypnutý a nově odstraňuje dekorace i z "ts..." týmů.
  * - stop()/applyNewConfig(): při vypnutí okamžitý úklid (clearAll), při zapnutí okamžitá aplikace.
  * - Folia-safe plánovač přes GlobalRegionScheduler.
+ * - ✅ Nově: naše per-player NT týmy mají „vanilla-like defaulty“
+ *   (kolize zapnuté, friendly fire povolený, death messages & name tags viditelné, žádné „see friendly invisibles“),
+ *   aby šlo strkat do mobů, dávat je do lodí atd.
  */
 public final class NametagService {
 
@@ -179,15 +182,23 @@ public final class NametagService {
         decorateTeamFor(team, target);
     }
 
+    /**
+     * Vytvoří (nebo vrátí) náš per-player tým a nastaví „vanilla-like“ defaulty:
+     * - kolize: ALWAYS (jde strkat do mobů, lodě apod.)
+     * - jmenovky: ALWAYS
+     * - death message: ALWAYS
+     * - friendly fire: true (respektuje serverové pvp nastavení)
+     * - see friendly invisibles: false
+     */
     private Team ensureOwnTeam(Scoreboard sb, Player target) {
         String base = OWN_TEAM_PREFIX + shortUuid(target.getUniqueId()); // nt_ab12cd34
         Team t = sb.getTeam(base);
         if (t == null) {
             t = sb.registerNewTeam(base);
-            try { t.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER); } catch (Throwable ignored) {}
-            try { t.setCanSeeFriendlyInvisibles(false); } catch (Throwable ignored) {}
-            try { t.setAllowFriendlyFire(false); } catch (Throwable ignored) {}
         }
+
+        // ✅ Vanilla defaulty aplikuj vždy (idempotentní, klidně opakovaně):
+        applyVanillaTeamDefaults(t);
 
         // ujisti se, že hráč je jen v TOMTO našem týmu (odstraníme z jiných nt_/legacy)
         for (Team other : sb.getTeams()) {
@@ -201,6 +212,15 @@ public final class NametagService {
             try { t.addEntry(target.getName()); } catch (Throwable ignored) {}
         }
         return t;
+    }
+
+    /** Vanilla-like defaults pro naše NT týmy. */
+    private static void applyVanillaTeamDefaults(Team team) {
+        try { team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS); } catch (Throwable ignored) {}
+        try { team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS); } catch (Throwable ignored) {}
+        try { team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS); } catch (Throwable ignored) {}
+        try { team.setAllowFriendlyFire(true); } catch (Throwable ignored) {}
+        try { team.setCanSeeFriendlyInvisibles(false); } catch (Throwable ignored) {}
     }
 
     private Team findTeamContaining(Scoreboard sb, String entry, String mustStartWith) {
@@ -268,7 +288,7 @@ public final class NametagService {
             }
         }
 
-        // 7) viditelnost jmen
+        // 7) viditelnost jmen (může přepsat vanilla default podle configu)
         Team.OptionStatus vis = readNameTagVisibility();
         try { t.setOption(Team.Option.NAME_TAG_VISIBILITY, vis); } catch (Throwable ignored) {}
     }

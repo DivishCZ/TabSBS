@@ -46,6 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * - Limit viditelných znaků v TABu (modules.tablist.max_list_name_chars; default 80).
  * - Anti-blink integrace s NametagService: při přesazení do tsNNN týmu výchozí dekorace týmu resetneme
  *   a okamžitě „přebarvíme“ hráče přes NametagService.applyFor(..).
+ * - ✅ Vanilla-like defaults pro všechny námi vytvářené týmy (kolize/jmenovky/death/friendly/invis).
  */
 public final class TabSortingService {
     private static final String TEAM_PREFIX = "ts";
@@ -488,7 +489,11 @@ public final class TabSortingService {
     private void ensureMarker(Scoreboard sb) {
         if (sb.getTeam(MARKER_TEAM) == null) {
             Team t = sb.registerNewTeam(MARKER_TEAM);
-            try { t.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER); } catch (Throwable ignored) {}
+            // ✅ Vanilla-like defaults i pro marker (bez členů je to neškodné, ať je to konzistentní)
+            applyVanillaTeamDefaults(t);
+        } else {
+            // pojistka kdyby někdo přepsal volby
+            try { applyVanillaTeamDefaults(sb.getTeam(MARKER_TEAM)); } catch (Throwable ignored) {}
         }
     }
 
@@ -499,6 +504,7 @@ public final class TabSortingService {
      * NOVĚ: Aby se při změně priorit neobjevil na okamžik prefix/suffix předchozího člena,
      * cílový tým vždy nejdřív vyčistíme (entries + dekorace) a teprve poté přidáme hráče
      * a okamžitě necháme NametagService aplikovat správný vzhled.
+     * + ✅ aplikujeme vanilla-like defaults na každý náš tým (idempotentně).
      */
     private void assignTeamsOnBoard(Scoreboard sb, List<Player> ordered) {
         // Nejprve všechny hráče v „zakázaných“ světech z našich týmů odstraníme.
@@ -524,10 +530,9 @@ public final class TabSortingService {
             Team t = sb.getTeam(newTeam);
             if (t == null) {
                 t = sb.registerNewTeam(newTeam);
-                try { t.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER); } catch (Throwable ignored) {}
-                try { t.setCanSeeFriendlyInvisibles(false); } catch (Throwable ignored) {}
-                try { t.setAllowFriendlyFire(false); } catch (Throwable ignored) {}
             }
+            // ✅ vždy zajisti vanilla-like defaults (kolize/jmenovky/death/friendly/invis)
+            applyVanillaTeamDefaults(t);
 
             if (!t.hasEntry(p.getName())) {
                 // očisti z jiných našich týmů na TOMTO boardu
@@ -658,8 +663,8 @@ public final class TabSortingService {
                     case "PAPI_STRING" -> {
                         Object phObj = m.get("placeholder");
                         String ph = (phObj == null ? "" : String.valueOf(phObj));
-                        String raw = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, ph);
-                        String norm = (raw == null ? "" : stripLegacyColors(raw).trim().toLowerCase(Locale.ROOT));
+                        String norm = (me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, ph));
+                        norm = (norm == null ? "" : stripLegacyColors(norm).trim().toLowerCase(Locale.ROOT));
                         List<String> order = toLowerList(m.get("order"));
                         int idx = order.indexOf(norm);
                         sb.append("PAPI$=").append(ph).append(" '").append(norm).append("'(idx=").append(idx < 0 ? "n/a" : idx).append(") ");
@@ -914,5 +919,16 @@ public final class TabSortingService {
             if (++vis >= maxVisible) break;
         }
         return out.toString();
+    }
+
+    // ====== ✅ VANILLA DEFAULTS HELPER ======
+    /** Idempotentně nastaví „vanilla-like“ hodnoty pro týmové volby. */
+    private static void applyVanillaTeamDefaults(Team team) {
+        if (team == null) return;
+        try { team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS); } catch (Throwable ignored) {}
+        try { team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS); } catch (Throwable ignored) {}
+        try { team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS); } catch (Throwable ignored) {}
+        try { team.setAllowFriendlyFire(true); } catch (Throwable ignored) {}
+        try { team.setCanSeeFriendlyInvisibles(false); } catch (Throwable ignored) {}
     }
 }
